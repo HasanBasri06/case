@@ -9,7 +9,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 $route = new Route();
 
 $route->get('/', [HomeController::class, 'index']);
-$route->get('/users', [HomeController::class, 'users']);
-$route->get('/admin', [HomeController::class, 'adminPage'], Auth::class);
+$route->get('/users/{id}', [HomeController::class, 'getUserDetail']);
+$route->post('/save-user', [HomeController::class, 'saveUser']);
 
 $route->run();

@@ -2,12 +2,16 @@
 
 namespace Http\Middleware;
 
+use Http\Auth as HttpAuth;
+
 class Auth {
     public function __construct() {
         
     }
 
-    static function handle() {
-        return redirect('/login');
+    public static function handle() {
+        if (!HttpAuth::check()) {
+            return redirect('/login');
+        }       
     }
 }

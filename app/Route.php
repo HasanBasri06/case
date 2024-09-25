@@ -3,6 +3,7 @@
 namespace App;
 
 use App\Enum\NotFoundTypeEnum;
+use Http\Request;
 use stdClass;
 
 use function PHPSTORM_META\type;
@@ -29,6 +30,7 @@ class Route
 
     public function run() {
         $requestMethod = $_SERVER['REQUEST_METHOD'];
+
 
         if ($requestMethod == 'GET') {
             $getRoutes = array_filter($this->routeCollect, fn ($query) => $query['type'] == 'GET');
@@ -57,36 +59,15 @@ class Route
                 array_shift($matches);
                 $class = $route['controller'][0];
                 $method = $route['controller'][1];
-                $isNullMiddleware = is_null($route['middleware']);
+                $isNullMiddleware = !is_null($route['middleware']);
 
-                if (!$isNullMiddleware) {
+                if ($isNullMiddleware) {
                     $middlewareClass = $route['middleware'];
 
                     (new $middlewareClass)->handle();
                 }
 
-                $returnType = gettype((new $class)->$method());
-
-                if ($returnType == 'array') {
-                    header('Content-Type: application/json');
-
-                    echo json_encode(call_user_func([new $class, $method], $matches));
-                    
-                    $routeFound = true;
-                    break;
-                }
-
-                if ($returnType == 'string') {
-                    echo call_user_func([new $class, $method], $matches);
-                    
-                    $routeFound = true;
-                    break;
-                }
-
-               echo call_user_func([new $class, $method], $matches);
-
-               $routeFound = true;
-               break;
+                call_user_func([new $class, $method], []);
             } 
         }
 
@@ -110,14 +91,3 @@ class Route
         }
     }
 }
-
-
-// if(is_array($this->notFoundPage())) {
-//     header('Content-Type: application/json');
-//     echo json_encode($this->notFoundPage());
-
-//     die;
-// }
-
-// echo $this->notFoundPage();
-// die;

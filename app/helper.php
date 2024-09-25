@@ -10,11 +10,11 @@ function redirect($route = '/') {
 }
 
 function view(string $view, array $data = null) {
-    if (!is_null($data)) {
-        extract($data);
-    }
-    
-    return include './app/view/'.$view.".php";
+    return [
+        'template' => './app/view/'.$view.".php",
+        'type' => 'view',
+        'data' => $data
+    ];
 }
 
 function notFoundPageConfig() {
@@ -32,3 +32,15 @@ function dbConfig() {
         'dbname' => 'case'
     ];
 }
+
+function dd($value, ...$values) {
+    echo "<pre>";
+        var_dump($value);
+    echo "</pre>";
+    foreach ($values as $val) {
+        echo "<pre>";
+            var_dump($val);
+        echo "</pre>";
+    }
+}
+

@@ -2,26 +2,28 @@
 
 namespace App\Controller;
 
+use App\Model\Post;
 use App\Model\User;
+use Http\Auth;
 use Http\Request;
-use Http\Response;
 
 class HomeController
 {
     public function index() {
-        return view('welcome', ['name' => 'Hasan']);
+        return "Hello World";        
     }
 
-    public function adminPage() {
-        return "Hello Admin";
+    public function getUserDetail($id = null) {
+        return User::table()
+            ->where('id', $id)
+            ->get();
+
     }
 
-    public function users() {
-        // return User::table()
-        // ->orderBy('name', 'DESC')
-        // ->limit(10)
-        // ->get();
+    
+    public function saveUser() {
+        $request = new Request();
 
-        return "Helllo";
+        return $request->all();
     }
 }
