@@ -1,30 +1,33 @@
 <?php
 
 namespace App;
+
+use App\Enum\NotFoundTypeEnum;
+use stdClass;
+
+use function PHPSTORM_META\type;
+
 class Route
 {
     protected $routeCollect = [];
 
-    public function get(string $url, array $class) {
-        $routeTemplate = ['url' => $url, 'controller' => $class, 'type' => 'GET'];
+    public function get(string $url, array $class, string $middleware = null) {
+        $routeTemplate = $this->routeTemplate($url, $class, 'GET', $middleware);
         array_push($this->routeCollect, $routeTemplate);
-
-        return $this;
     }
 
-    public function post(string $url, array $class) {
-        $routeTemplate = ['url' => $url, 'controller' => $class, 'type' => 'POST'];
+    public function post(string $url, array $class, string $middleware = null) {
+        $routeTemplate = $this->routeTemplate($url, $class, 'POST', $middleware);
         array_push($this->routeCollect, $routeTemplate);
-
-        return $this;
     }
 
-    public function middleware(string $name) {
-        var_dump("Hello middleware");
+    public function routeTemplate(string $url, array $class, string $type, string $middleware = null) {
+        $template = ['url' => $url, 'controller' => $class, 'type' => $type, 'middleware' => $middleware];
+
+        return $template;
     }
 
     public function run() {
-        echo "<pre>";
         $requestMethod = $_SERVER['REQUEST_METHOD'];
 
         if ($requestMethod == 'GET') {
@@ -43,12 +46,78 @@ class Route
     }
 
     public function match(array $routes) {
-        $requestURI = $_SERVER['REQUEST_URI'];
+        $requestURI = trim($_SERVER['REQUEST_URI'], '/');
+        $routeFound = false;
 
         foreach ($routes as $route) {
-            $matchUrl = preg_match_all('/({.*?})/', $route['url'], $regexRoute);
+            $url = trim($route['url'], '/');
+            $pattern = preg_replace('/\{([a-zA-Z0-9_]+)\}/', '([^/]+)', $url);
 
-            var_dump($matchUrl);
+            if (preg_match("#^$pattern$#", $requestURI, $matches)) {
+                array_shift($matches);
+                $class = $route['controller'][0];
+                $method = $route['controller'][1];
+                $isNullMiddleware = is_null($route['middleware']);
+
+                if (!$isNullMiddleware) {
+                    $middlewareClass = $route['middleware'];
+
+                    (new $middlewareClass)->handle();
+                }
+
+                $returnType = gettype((new $class)->$method());
+
+                if ($returnType == 'array') {
+                    header('Content-Type: application/json');
+
+                    echo json_encode(call_user_func([new $class, $method], $matches));
+                    
+                    $routeFound = true;
+                    break;
+                }
+
+                if ($returnType == 'string') {
+                    echo call_user_func([new $class, $method], $matches);
+                    
+                    $routeFound = true;
+                    break;
+                }
+
+               echo call_user_func([new $class, $method], $matches);
+
+               $routeFound = true;
+               break;
+            } 
+        }
+
+        if (!$routeFound) {
+            echo json_encode($this->notFoundPage());
+            exit();
+        }
+    }
+
+    public function notFoundPage() {
+        if (NotFoundTypeEnum::ARRAY->value == notFoundPageConfig()['type']) {
+            return [
+                "code" => 404,
+                "message" => notFoundPageConfig()['message'],
+                "data" => []
+            ];
+        }
+
+        if (NotFoundTypeEnum::STRING->value == notFoundPageConfig()['type']) {
+            return notFoundPageConfig()['message'];
         }
     }
 }
+
+
+// if(is_array($this->notFoundPage())) {
+//     header('Content-Type: application/json');
+//     echo json_encode($this->notFoundPage());
+
+//     die;
+// }
+
+// echo $this->notFoundPage();
+// die;
