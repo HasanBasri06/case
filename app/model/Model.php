@@ -25,10 +25,7 @@ class Model {
 
     public function where(mixed $key, mixed $value) {
         $sqlWhere = [];
-
         $sqlWhere = [$key => $value];
-        dd($sqlWhere);die;
-
         
         $sqlWhere = implode(' AND ', $sqlWhere);
         $this->where = ' WHERE ' . $sqlWhere;
@@ -103,14 +100,20 @@ class Model {
             $prepare = $this->pdo->query($QRY);
             $prepare->execute();
 
-            $collect[] = ["data" => $data, $method => [$prepare->fetchAll(\PDO::FETCH_ASSOC)]];
+            array_push($collect,  $data, [$method => $prepare->fetchAll(\PDO::FETCH_ASSOC)]);
         }
 
         $this->get = $collect;
     }
 
     public function first() {
-        return $this->execute('single');
+        $this->execute('single');
+
+        if ($this->with !== '') {
+            $this->withParameter();
+        }
+
+        return $this->get;  
     }
 
     public function get() {

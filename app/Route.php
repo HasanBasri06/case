@@ -4,6 +4,8 @@ namespace App;
 
 use App\Enum\NotFoundTypeEnum;
 use Http\Request;
+use IntlBreakIterator;
+use ReflectionClass;
 use stdClass;
 
 use function PHPSTORM_META\type;
@@ -67,7 +69,34 @@ class Route
                     (new $middlewareClass)->handle();
                 }
 
-                call_user_func([new $class, $method], []);
+               
+                $reflectionClass = new ReflectionClass($class);
+                $getMethodType = $reflectionClass->getMethod($method);
+                $returnType = $getMethodType->getReturnType();
+
+                try {
+                    if (!$getMethodType->hasReturnType()) {
+                        throw new \Exception($class.'::'.$method . " methodunuz bir dönüş tipi belirtilmemiş");
+                    }
+                } catch (\Throwable $th) {
+                    die($th->getMessage());
+                }
+                
+                if ($returnType == 'string' || $returnType == 'integer') {
+                    (new Kernel)->startTextMode($class, $method, $matches);
+
+                    $routeFound = true;
+                    break;
+                }
+
+                if ($returnType == 'array' || $returnType == 'object') {
+                    (new Kernel)->startArrayMode($class, $method, $matches);
+                    $routeFound = true;
+                    break;
+                }
+
+                $routeFound = true;
+                break;
             } 
         }
 

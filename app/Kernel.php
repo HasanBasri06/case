@@ -9,6 +9,24 @@ class Kernel
         include __DIR__ . '/web.php';
     }
 
+    public function startTextMode($class, $method, $matches) {
+        echo (new $class)->$method(...$matches);
+    }
+
+    public function startArrayMode($class, $method, $matches) {
+        $array = (new $class)->$method(...$matches);
+        
+        if (isset($array['type']) && $array['type'] == 'view') {
+            if (!is_null($array['data'])) {
+                extract($array['data']);
+            }
+
+            include __DIR__ . '/../'. $array['template'];
+        }
+
+        echo json_encode($array);
+    }
+
     public function console($args) {
         if ($args[1] == 'serve') {
             shell_exec('php -S localhost:8000 index.php');
