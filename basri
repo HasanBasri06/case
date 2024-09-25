@@ -1,0 +1,12 @@
+<?php 
+use App\Kernel;
+
+require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__ . '/app/helper.php';
+
+if (PHP_SAPI != 'cli') {
+    var_dump("sistem çalışmamaktadır.");
+    die;
+}
+
+(new Kernel)->console($argv);
