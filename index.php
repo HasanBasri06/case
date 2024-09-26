@@ -1,4 +1,5 @@
 <?php
+use Http\Request;
 session_start();
 
 require __DIR__ . '/vendor/autoload.php';

@@ -3,6 +3,7 @@
 namespace App;
 
 use App\Enum\NotFoundTypeEnum;
+use Http\Middleware\CsrfProtected;
 use Http\Request;
 use IntlBreakIterator;
 use ReflectionClass;
@@ -42,6 +43,7 @@ class Route
         }
 
         if ($requestMethod == 'POST') {
+            CsrfProtected::handle();
             $getRoutes = array_filter($this->routeCollect, fn ($query) => $query['type'] == 'POST');
             $this->match($getRoutes);
 

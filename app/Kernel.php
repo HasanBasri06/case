@@ -21,9 +21,10 @@ class Kernel
                 extract($array['data']);
             }
 
-            include __DIR__ . '/../'. $array['template'];
+            return include __DIR__ . '/../'. $array['template'];
         }
 
+        header("Content-Type: application/json");
         echo json_encode($array);
     }
 
@@ -67,6 +68,9 @@ class Kernel
                     break;
                 case 'view':
                     $this->createView($value);
+                    break;
+                case 'middleware':
+                    $this->createMiddleware($value);
                     break;
             }
         }
@@ -113,6 +117,21 @@ class Kernel
         touch(__DIR__ . '/view/'.$fileName.'.php');
         $f = fopen($filePath, 'w+');
         $stream = "<!DOCTYPE html>\n<html lang='tr'>\n<head>\n  <meta charset='UTF-8'>\n  <meta name='viewport' content='width=device-width, initial-scale=1.0'>\n  <title>".$fileName."</title>\n</head>\n<body>\n  <h1>".$fileName." sayfasına hoşgeldiniz</h1>\n</body>\n</html>";
+        fwrite($f, $stream);
+        fclose($f);
+    }
+
+    public function createMiddleware($fileName) {
+        $filePath = __DIR__ . '/../http/middleware/'.$fileName.'.php';
+        $fileExist = file_exists($filePath);
+
+        if ($fileExist) {
+            unlink($filePath);
+        }
+
+        touch($filePath);
+        $f = fopen($filePath, 'w+');
+        $stream = "<?php\nnamespace Http\Middleware;\nclass ".$fileName." {\n     public function __construct() {}\n\n     public static function handle() {}\n}";
         fwrite($f, $stream);
         fclose($f);
     }

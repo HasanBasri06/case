@@ -44,3 +44,23 @@ function dd($value, ...$values) {
     }
 }
 
+function str_random($maxLength = 10)
+{
+    $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    $charactersLength = strlen($characters);
+    $randomString = '';
+
+    for ($i = 0; $i < $maxLength; $i++) {
+        $randomString .= $characters[random_int(0, $charactersLength - 1)];
+    }
+
+    return $randomString;
+}
+
+function csrf() {
+    if (isset($_SESSION['X-CSRF-TOKEN'])) {
+        return $_SESSION['X-CSRF-TOKEN'];
+    }
+    
+    return $_SESSION['X-CSRF-TOKEN'] = str_random(16);
+}
